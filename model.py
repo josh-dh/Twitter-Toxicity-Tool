@@ -8,6 +8,9 @@ tknzr = TweetTokenizer(reduce_len = True)
 nltk.download('stopwords')
 from nltk.corpus import stopwords
 import string
+from joblib import dump, load
+import os.path
+from os import path
 
 #get pd dataframe for training data
 df_data = pd.read_csv("twitter-sentiment-analysis-hatred-speech/train.csv",names=('id','label','tweet'),header=None)
@@ -23,4 +26,11 @@ def get_tweet_and_label(tweet_number):
 	tmp = df_data.iloc[tweet_number].to_numpy()
 	return processTweet(tmp[2]), tmp[1]
 
-print(get_tweet_and_label(0))
+#train tf-idf vectorizer or get existing model
+tweetData = df_data.to_numpy().T[2]
+if (path.exists('vectorizer.joblib') == False):
+	vectorizer = TfidfVectorizer(tokenizer=processTweet, max_features=2000)
+	vectorizer.fit(tweetData)
+	dump(vectorizer, 'vectorizer.joblib')
+else:
+	vectorizer = load('vectorizer.joblib')
